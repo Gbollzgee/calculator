@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Bubble Calculator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background gradient */
+        .bg-gradient {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(212, 175, 55, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(138, 43, 226, 0.06) 0%, transparent 50%);
+            animation: rotate 30s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .calculator {
+            position: relative;
+            z-index: 10;
+            background: rgba(20, 20, 28, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            width: 380px;
+            max-width: 90vw;
+        }
+
+        .brand {
+            text-align: center;
+            color: rgba(212, 175, 55, 0.6);
+            font-size: 10px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .display {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 24px 20px;
+            margin-bottom: 24px;
+            text-align: right;
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), transparent);
+        }
+
+        .previous-operand {
+            color: rgba(212, 175, 55, 0.5);
+            font-size: 16px;
+            min-height: 24px;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 2px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .current-operand {
+            color: #e8d5a3;
+            font-size: 42px;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 2px;
+            margin-top: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            background: rgba(255, 255, 255, 0.03);
+            color: #e0e0e0;
+            font-size: 22px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            padding: 22px 10px;
+            border-radius: 16px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        button:hover::before {
+            opacity: 1;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        button.span-two {
+            grid-column: span 2;
+        }
+
+        /* Operator buttons */
+        .operator {
+            background: rgba(212, 175, 55, 0.1);
+            color: #d4af37;
+            font-weight: 600;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+        }
+
+        .operator:hover {
+            background: rgba(212, 175, 55, 0.2);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+        }
+
+        /* Equals button */
+        .equals {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.8), rgba(184, 134, 11, 0.9));
+            color: #0a0a0f;
+            font-weight: 700;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+        }
+
+        .equals:hover {
+            background: linear-gradient(135deg, rgba(212, 175, 55, 0.9), rgba(184, 134, 11, 1));
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
+        }
+
+        /* Clear/Delete buttons */
+        .clear {
+            background: rgba(220, 38, 38, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(220, 38, 38, 0.15);
+        }
+
+        .clear:hover {
+            background: rgba(220, 38, 38, 0.2);
+            box-shadow: 0 0 20px rgba(220, 38, 38, 0.15);
+        }
+
+        /* Bubble canvas */
+        #bubbleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        /* Subtle scanline effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        @media (max-width: 480px) {
+            .calculator {
+                padding: 20px;
+                border-radius: 24px;
+            }
+            button {
+                padding: 18px 8px;
+                font-size: 20px;
+                border-radius: 14px;
+            }
+            .current-operand {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="scanlines"></div>
+    <canvas id="bubbleCanvas"></canvas>
+
+    <div class="calculator">
+        <div class="brand">Luxury Instruments</div>
+        <div class="display">
+            <div class="previous-operand" id="previousOperand"></div>
+            <div class="current-operand" id="currentOperand">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear span-two" onclick="calculator.clear()">AC</button>
+            <button class="clear" onclick="calculator.delete()">DEL</button>
+            <button class="operator" onclick="calculator.chooseOperation('÷')">÷</button>
+            
+            <button onclick="calculator.appendNumber('7')">7</button>
+            <button onclick="calculator.appendNumber('8')">8</button>
+            <button onclick="calculator.appendNumber('9')">9</button>
+            <button class="operator" onclick="calculator.chooseOperation('×')">×</button>
+            
+            <button onclick="calculator.appendNumber('4')">4</button>
+            <button onclick="calculator.appendNumber('5')">5</button>
+            <button onclick="calculator.appendNumber('6')">6</button>
+            <button class="operator" onclick="calculator.chooseOperation('-')">−</button>
+            
+            <button onclick="calculator.appendNumber('1')">1</button>
+            <button onclick="calculator.appendNumber('2')">2</button>
+            <button onclick="calculator.appendNumber('3')">3</button>
+            <button class="operator" onclick="calculator.chooseOperation('+')">+</button>
+            
+            <button onclick="calculator.appendNumber('0')">0</button>
+            <button onclick="calculator.appendNumber('.')">.</button>
+            <button class="equals span-two" onclick="calculator.compute()">=</button>
+        </div>
+    </div>
+
+    <script>
+        // Bubble Particle System
+        class BubbleSystem {
+            constructor() {
+                this.canvas = document.getElementById('bubbleCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.bubbles = [];
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            createBubble(x, y, symbol) {
+                const symbols = ['+', '−', '×', '÷', '=', '%', '√', 'π', '∑', '∞', '≈', '≠'];
+                const displaySymbol = symbol || symbols[Math.floor(Math.random() * symbols.length)];
+                
+                for (let i = 0; i < 6; i++) {
+                    this.bubbles.push({
+                        x: x + (Math.random() - 0.5) * 40,
+                        y: y + (Math.random() - 0.5) * 20,
+                        radius: Math.random() * 25 + 10,
+                        speedY: Math.random() * -2 - 0.5,
+                        speedX: (Math.random() - 0.5) * 2,
+                        opacity: 1,
+                        decay: Math.random() * 0.015 + 0.008,
+                        symbol: i === 0 ? displaySymbol : symbols[Math.floor(Math.random() * symbols.length)],
+                        hue: Math.random() > 0.7 ? 45 : Math.random() * 60 + 200,
+                        wobble: Math.random() * Math.PI * 2,
+                        wobbleSpeed: Math.random() * 0.05 + 0.02
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                for (let i = this.bubbles.length - 1; i >= 0; i--) {
+                    const b = this.bubbles[i];
+                    b.y += b.speedY;
+                    b.x += Math.sin(b.wobble) * 0.5 + b.speedX;
+                    b.wobble += b.wobbleSpeed;
+                    b.opacity -= b.decay;
+                    b.radius += 0.15;
+
+                    if (b.opacity <= 0) {
+                        this.bubbles.splice(i, 1);
+                        continue;
+                    }
+
+                    // Bubble body
+                    this.ctx.beginPath();
+                    this.ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${b.hue}, 70%, 60%, ${b.opacity * 0.15})`;
+                    this.ctx.fill();
+                    
+                    // Bubble border
+                    this.ctx.strokeStyle = `hsla(${b.hue}, 70%, 70%, ${b.opacity * 0.4})`;
+                    this.ctx.lineWidth = 1.5;
+                    this.ctx.stroke();
+
+                    // Shine effect
+                    this.ctx.beginPath();
+                    this.ctx.arc(b.x - b.radius * 0.3, b.y - b.radius * 0.3, b.radius * 0.25, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `hsla(${b.hue}, 80%, 90%, ${b.opacity * 0.3})`;
+                    this.ctx.fill();
+
+                    // Symbol inside bubble
+                    this.ctx.font = `bold ${Math.floor(b.radius * 0.8)}px 'Orbitron', monospace`;
+                    this.ctx.fillStyle = `hsla(${b.hue}, 80%, 85%, ${b.opacity})`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    this.ctx.fillText(b.symbol, b.x, b.y);
+                }
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        const bubbleSystem = new BubbleSystem();
+
+        // Calculator Logic
+        class Calculator {
+            constructor(previousOperandTextElement, currentOperandTextElement) {
+                this.previousOperandTextElement = previousOperandTextElement;
+                this.currentOperandTextElement = currentOperandTextElement;
+                this.clear();
+            }
+
+            clear() {
+                this.currentOperand = '0';
+                this.previousOperand = '';
+                this.operation = undefined;
+                this.updateDisplay();
+                this.triggerBubbles('C');
+            }
+
+            delete() {
+                if (this.currentOperand === '0') return;
+                this.currentOperand = this.currentOperand.toString().slice(0, -1);
+                if (this.currentOperand === '') this.currentOperand = '0';
+                this.updateDisplay();
+                this.triggerBubbles('⌫');
+            }
+
+            appendNumber(number) {
+                if (number === '.' && this.currentOperand.includes('.')) return;
+                if (this.currentOperand === '0' && number !== '.') {
+                    this.currentOperand = number.toString();
+                } else {
+                    this.currentOperand = this.currentOperand.toString() + number.toString();
+                }
+                this.updateDisplay();
+                this.triggerBubbles(number);
+            }
+
+            chooseOperation(operation) {
+                if (this.currentOperand === '') return;
+                if (this.previousOperand !== '') {
+                    this.compute();
+                }
+                this.operation = operation;
+                this.previousOperand = this.currentOperand;
+                this.currentOperand = '';
+                this.updateDisplay();
+                this.triggerBubbles(operation);
+            }
+
+            compute() {
+                let computation;
+                const prev = parseFloat(this.previousOperand);
+                const current = parseFloat(this.currentOperand);
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch (this.operation) {
+                    case '+':
+                        computation = prev + current;
+                        break;
+                    case '−':
+                        computation = prev - current;
+                        break;
+                    case '×':
+                        computation = prev * current;
+                        break;
+                    case '÷':
+                        computation = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                
+                this.currentOperand = computation;
+                this.operation = undefined;
+                this.previousOperand = '';
+                this.updateDisplay();
+                this.triggerBubbles('=');
+            }
+
+            getDisplayNumber(number) {
+                const stringNumber = number.toString();
+                const integerDigits = parseFloat(stringNumber.split('.')[0]);
+                const decimalDigits = stringNumber.split('.')[1];
+                let integerDisplay;
+                if (isNaN(integerDigits)) {
+                    integerDisplay = '';
+                } else {
+                    integerDisplay = integerDigits.toLocaleString('en', { maximumFractionDigits: 0 });
+                }
+                if (decimalDigits != null) {
+                    return `${integerDisplay}.${decimalDigits}`;
+                } else {
+                    return integerDisplay;
+                }
+            }
+
+            updateDisplay() {
+                this.currentOperandTextElement.innerText = this.getDisplayNumber(this.currentOperand);
+                if (this.operation != null) {
+                    this.previousOperandTextElement.innerText = 
+                        `${this.getDisplayNumber(this.previousOperand)} ${this.operation}`;
+                } else {
+                    this.previousOperandTextElement.innerText = '';
+                }
+            }
+
+            triggerBubbles(symbol) {
+                // Get a random position near the center or calculate from active element
+                const x = window.innerWidth / 2 + (Math.random() - 0.5) * 100;
+                const y = window.innerHeight / 2 + (Math.random() - 0.5) * 100;
+                bubbleSystem.createBubble(x, y, symbol);
+            }
+        }
+
+        const previousOperandTextElement = document.getElementById('previousOperand');
+        const currentOperandTextElement = document.getElementById('currentOperand');
+        const calculator = new Calculator(previousOperandTextElement, currentOperandTextElement);
+
+        // Add click listeners to all buttons for bubble positioning
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const rect = button.getBoundingClientRect();
+                const x = rect.left + rect.width / 2;
+                const y = rect.top + rect.height / 2;
+                
+                // Get symbol from button text
+                const symbol = button.innerText;
+                bubbleSystem.createBubble(x, y, symbol);
+            });
+        });
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') calculator.appendNumber(e.key);
+            if (e.key === '.') calculator.appendNumber('.');
+            if (e.key === '=' || e.key === 'Enter') calculator.compute();
+            if (e.key === 'Backspace') calculator.delete();
+            if (e.key === 'Escape') calculator.clear();
+            if (e.key === '+') calculator.chooseOperation('+');
+            if (e.key === '-') calculator.chooseOperation('−');
+            if (e.key === '*') calculator.chooseOperation('×');
+            if (e.key === '/') {
+                e.preventDefault();
+                calculator.chooseOperation('÷');
+            }
+        });
+    </script>
+</body>
+</html>
